@@ -1,0 +1,16 @@
+# Create a new system age key and encrypt it
+# Usage: create-system-key
+
+@gum@ confirm "WARNING: This will overwrite 'keys.txt.age'. Existing secrets might become inaccessible if you lose the old key. Continue?" || exit 0
+
+echo "Generating new system age key..."
+TMP_KEY=$(mktemp)
+@ageKeygen@ -o "$TMP_KEY"
+
+echo "Encrypting new key to keys.txt.age..."
+echo "You will be prompted to enter a passphrase to protect this key."
+@age@ -p -o keys.txt.age "$TMP_KEY"
+
+rm "$TMP_KEY"
+echo
+echo "New system key created at keys.txt.age."

@@ -64,12 +64,36 @@
                 yq-go
                 wl-clipboard
                 jq
+                yamllint
+                mkpasswd
 
                 (writeShellScriptBin "ensure-system-key-exists" (
                   builtins.readFile (
                     pkgs.replaceVars ./.scripts/ensure-system-key-exists {
                       systemKeyFile = defaultSopsKeyFile;
                       age = getExe pkgs.age;
+                    }
+                  )
+                ))
+
+                (writeShellScriptBin "create-system-key" (
+                  builtins.readFile (
+                    pkgs.replaceVars ./.scripts/create-system-key {
+                      gum = getExe pkgs.gum;
+                      age = getExe pkgs.age;
+                      ageKeygen = "${pkgs.age}/bin/age-keygen";
+                    }
+                  )
+                ))
+
+                (writeShellScriptBin "set-hashed-password" (
+                  builtins.readFile (
+                    pkgs.replaceVars ./.scripts/set-hashed-password {
+                      gum = getExe pkgs.gum;
+                      mkpasswd = getExe pkgs.mkpasswd;
+                      sops = getExe pkgs.sops;
+                      yq = getExe pkgs.yq-go;
+                      jq = getExe pkgs.jq;
                     }
                   )
                 ))
