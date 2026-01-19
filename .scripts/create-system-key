@@ -4,13 +4,48 @@
 @gum@ confirm "WARNING: This will overwrite 'keys.txt.age'. Existing secrets might become inaccessible if you lose the old key. Continue?" || exit 0
 
 echo "Generating new system age key..."
-TMP_KEY=$(mktemp)
+TMP_KEY=$(mktemp -u)
 @ageKeygen@ -o "$TMP_KEY"
+
+# Derive public key for .sops.yaml
+AGE_PUB_KEY=$(@ageKeygen@ -y "$TMP_KEY")
 
 echo "Encrypting new key to keys.txt.age..."
 echo "You will be prompted to enter a passphrase to protect this key."
 @age@ -p -o keys.txt.age "$TMP_KEY"
 
+# We keep TMP_KEY for a moment to compare? No, ensure-system-key-exists decrypts keys.txt.age.
+# But we need the public key for .sops.yaml.
+
 rm "$TMP_KEY"
 echo
 echo "New system key created at keys.txt.age."
+echo
+echo "Ensuring system key is installed..."
+ensure-system-key-exists
+
+echo
+echo "Updating .sops.yaml with new public key ($AGE_PUB_KEY)..."
+cat > .sops.yaml <<EOF
+creation_rules:
+  - path_regex: secrets.yaml$
+    key_groups:
+      - age:
+          - "$AGE_PUB_KEY"
+EOF
+
+echo
+echo "Recreating secrets.yaml (previous secrets are lost)..."
+rm -f secrets.yaml
+
+echo
+echo "Please set the User password:"
+set-hashed-password user
+
+echo
+echo "Please set the Root password:"
+set-hashed-password root
+
+echo
+echo "Please setup the SSH key:"
+generate-ssh-key

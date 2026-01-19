@@ -50,6 +50,7 @@
               inherit (lib) getExe;
               secretsOptions = import ./nix/options.nix { inherit lib; };
               defaultSopsKeyFile = secretsOptions.options.secrets.sopsKeyFile.default;
+              tte = inputs'.terminaltexteffects.packages.default;
             in
             pkgs.mkShell {
               shellHook = ''
@@ -58,14 +59,14 @@
 
               packages = with pkgs; [
                 age
+                diffutils
                 gum
-                sops
-                inputs'.terminaltexteffects.packages.default
-                yq-go
-                wl-clipboard
                 jq
-                yamllint
                 mkpasswd
+                sops
+                tte
+                wl-clipboard
+                yq-go
 
                 (writeShellScriptBin "ensure-system-key-exists" (
                   builtins.readFile (

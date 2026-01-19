@@ -1,4 +1,3 @@
-
 # Color definitions (ANSI escape codes)
 GREEN='\033[0;32m'
 YELLOW_BOLD='\033[1;33m'
@@ -19,7 +18,7 @@ show_help() {
   echo
   echo "Options:"
   echo "  -h, --help       Show this help message and exit"
-  echo "  -f, --force      Overwrite the key file if it already exists"
+  echo "  -f, --force      Overwrite the key file if it already exists (implied if content differs)"
   echo
 }
 
@@ -43,18 +42,6 @@ while [ "$#" -gt 0 ]; do
 done
 
 # Main Logic
-
-# Check if key exists
-if [ -f "$SYSTEM_KEY_FILE" ]; then
-  if [ "$FORCE" = true ]; then
-    printf "${YELLOW_BOLD}⚠️  Force mode enabled. Overwriting existing key at $SYSTEM_KEY_FILE.${NC}\n"
-  else
-    printf "${GREEN}✓ System master key already exists at $SYSTEM_KEY_FILE${NC}\n"
-    exit 0
-  fi
-else
-  printf "${YELLOW_BOLD}🔒 System master key not found at $SYSTEM_KEY_FILE${NC}\n"
-fi
 
 echo "We need to decrypt the master key to unlock your secrets."
 echo
@@ -80,7 +67,18 @@ if @age@ -d -o "$TMP_KEY" "$AGE_FILE"; then
   echo
   printf "${GREEN}✓ Successfully decrypted key to temporary file.${NC}\n"
 
-  printf "${CYAN}Installing master key to system location ($SYSTEM_KEY_FILE)...${NC}\n"
+  # Check if key exists and compares
+  if [ -f "$SYSTEM_KEY_FILE" ]; then
+    if cmp -s "$TMP_KEY" "$SYSTEM_KEY_FILE" && [ "$FORCE" = false ]; then
+        printf "${GREEN}✓ System master key is already up to date at $SYSTEM_KEY_FILE${NC}\n"
+        rm -f "$TMP_KEY"
+        exit 0
+    else
+        printf "${YELLOW_BOLD}System key differs or force enabled. Updating $SYSTEM_KEY_FILE...${NC}\n"
+    fi
+  else
+    printf "${CYAN}Installing master key to system location ($SYSTEM_KEY_FILE)...${NC}\n"
+  fi
 
   # Install to system location with sudo
   if sudo mkdir -p "$(dirname "$SYSTEM_KEY_FILE")" &&
