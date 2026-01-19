@@ -48,7 +48,7 @@ in
         root.hashedPasswordFile = config.sops.secrets.unixRootPassword.path;
         ${cfg.username}.hashedPasswordFile = config.sops.secrets.unixPassword.path;
         ${cfg.username}.openssh.authorizedKeys.keys = [
-          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJxJhslVg1p7z/RcbMefJHoyyazS0c91U1MKBgVQrtuy 2025-12-20"
+          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJxJhslVg1p7z/RcbMefJHoyyazS0c91U1MKBgVQrtuy 2025-12-20" # managed by extract-pub-key
         ];
       };
     };

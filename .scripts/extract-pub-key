@@ -30,8 +30,24 @@ fi
 # ssh-keygen -y reads private key and prints public key to stdout
 echo "Generating public key... you may be prompted for your SSH private key passphrase."
 echo
-@sshKeygen@ -y -f "$TMP_KEY"
-echo
+PUB_KEY=$(@sshKeygen@ -y -f "$TMP_KEY")
+
+if [ $? -eq 0 ] && [ -n "$PUB_KEY" ]; then
+    echo "$PUB_KEY"
+    echo
+    
+    # Update nix/module.nix if it exists in the current directory
+    if [ -f "nix/module.nix" ]; then
+        echo "Updating nix/module.nix with the new public key..."
+        # Use a different delimiter for sed to handle / in the pubkey
+        sed -i "s|.*# managed by extract-pub-key|\"$PUB_KEY\" # managed by extract-pub-key|" nix/module.nix
+        nix fmt nix/module.nix
+    fi
+else
+    echo "Error: Failed to extract public key."
+    rm -f "$TMP_KEY"
+    exit 1
+fi
 
 # Cleanup
 rm -f "$TMP_KEY"
