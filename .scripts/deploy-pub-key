@@ -1,0 +1,53 @@
+# Deploy public key to remote host
+# Usage: deploy-pub-key [username] [host]
+
+USERNAME="${1:-}"
+HOST="${2:-}"
+
+if [ -z "$USERNAME" ]; then
+  echo "Enter username:"
+  USERNAME=$(@gum@ input --placeholder "$USER")
+  if [ -z "$USERNAME" ]; then
+    USERNAME="$USER"
+  fi
+fi
+
+if [ -z "$HOST" ]; then
+  echo "Enter host:"
+  HOST=$(@gum@ input --placeholder "Host (e.g. 192.168.1.10)")
+fi
+
+if [ -z "$HOST" ]; then
+  echo "Host is required."
+  exit 1
+fi
+
+echo "Deploying key to $USERNAME@$HOST..."
+
+# Extract public key (extract-pub-key prints extra info to stderr/stdout mixed?
+# We need to capture just the key.
+# extract-pub-key prints "Extracting..." "Generating..." and newlines.
+# We need to filter that.
+# Actually, extract-pub-key prints the key to stdout.
+# But it also prints "Generating..." to stdout?
+# I added "echo ..." commands to it.
+# I should change extract-pub-key to print info to stderr so we can pipe the key!
+# OR I should grep for the key.
+# Public keys start with "ssh-".
+
+PUB_KEY=$(extract-pub-key | grep "^ssh-")
+
+if [ -z "$PUB_KEY" ]; then
+  echo "Failed to extract public key or key format not recognized."
+  extract-pub-key # Run again to show output
+  exit 1
+fi
+
+# Use a temp file for ssh-copy-id
+# ssh-copy-id often requires the file to end in .pub to treat it as a public key
+TMP_PUB=$(mktemp --suffix=.pub)
+echo "$PUB_KEY" > "$TMP_PUB"
+
+@sshCopyId@ -f -i "$TMP_PUB" "$USERNAME@$HOST"
+
+rm "$TMP_PUB"

@@ -1,0 +1,37 @@
+# Extract public key from sops secret
+
+SOPS_FILE="${1:-secrets.yaml}"
+KEY_NAME="${2:-sshPrivKey}"
+
+if [ ! -f "$SOPS_FILE" ]; then
+  echo "Error: $SOPS_FILE not found."
+  exit 1
+fi
+
+# Create a secure temp file
+TMP_KEY=$(mktemp)
+chmod 600 "$TMP_KEY"
+
+# Extract private key
+# We use --extract to get the specific key's value
+# Note: sops output might contain the value directly if it's a leaf
+# Constructing path with robust quoting: '["' + $KEY_NAME + '"]'
+# This results in ["keyname"] passed to sops
+echo "Extracting '$KEY_NAME' from '$SOPS_FILE'..."
+print-secret "$KEY_NAME" "$SOPS_FILE" > "$TMP_KEY"
+
+if [ ! -s "$TMP_KEY" ]; then
+    echo "Error: Failed to extract key '$KEY_NAME' from '$SOPS_FILE' or key is empty."
+    rm -f "$TMP_KEY"
+    exit 1
+fi
+
+# Generate public key
+# ssh-keygen -y reads private key and prints public key to stdout
+echo "Generating public key... you may be prompted for your SSH private key passphrase."
+echo
+@sshKeygen@ -y -f "$TMP_KEY"
+echo
+
+# Cleanup
+rm -f "$TMP_KEY"

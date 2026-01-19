@@ -10,10 +10,21 @@
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    terminaltexteffects = {
+      url = "github:ChrisBuilds/terminaltexteffects";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.systems.follows = "systems";
+    };
   };
 
   outputs =
-    inputs@{ flake-parts, systems, ... }:
+    inputs@{
+      flake-parts,
+      systems,
+      terminaltexteffects,
+      ...
+    }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
         # To import an internal flake module: ./other.nix
@@ -41,15 +52,66 @@
               defaultSopsKeyFile = secretsOptions.options.secrets.sopsKeyFile.default;
             in
             pkgs.mkShell {
+              shellHook = ''
+                echo "*** Run the 'secrets-menu' command ***" | tte --frame-rate 300 wipe
+              '';
+
               packages = with pkgs; [
                 age
+                gum
                 sops
+                inputs'.terminaltexteffects.packages.default
+                yq-go
+                wl-clipboard
 
                 (writeShellScriptBin "ensure-system-key-exists" (
                   builtins.readFile (
                     pkgs.replaceVars ./.scripts/ensure-system-key-exists {
-                      age = getExe pkgs.age;
                       systemKeyFile = defaultSopsKeyFile;
+                      age = getExe pkgs.age;
+                    }
+                  )
+                ))
+
+                (writeShellScriptBin "extract-pub-key" (
+                  builtins.readFile (
+                    pkgs.replaceVars ./.scripts/extract-pub-key {
+                      sshKeygen = "${pkgs.openssh}/bin/ssh-keygen";
+                    }
+                  )
+                ))
+
+                (writeShellScriptBin "print-secret" (
+                  builtins.readFile (
+                    pkgs.replaceVars ./.scripts/print-secret {
+                      sops = getExe pkgs.sops;
+                    }
+                  )
+                ))
+
+                (writeShellScriptBin "list-secrets" (
+                  builtins.readFile (
+                    pkgs.replaceVars ./.scripts/list-secrets {
+                      sops = getExe pkgs.sops;
+                      yq = getExe pkgs.yq-go;
+                    }
+                  )
+                ))
+
+                (writeShellScriptBin "secrets-menu" (
+                  builtins.readFile (
+                    pkgs.replaceVars ./.scripts/secrets-menu {
+                      gum = getExe pkgs.gum;
+                      wlCopy = "${pkgs.wl-clipboard}/bin/wl-copy";
+                    }
+                  )
+                ))
+
+                (writeShellScriptBin "deploy-pub-key" (
+                  builtins.readFile (
+                    pkgs.replaceVars ./.scripts/deploy-pub-key {
+                      gum = getExe pkgs.gum;
+                      sshCopyId = "${pkgs.openssh}/bin/ssh-copy-id";
                     }
                   )
                 ))
@@ -57,11 +119,6 @@
             };
 
           formatter = pkgs.nixfmt;
-
-          # Per-system attributes can be defined here. The self' and inputs'
-          # module parameters provide easy access to attributes of the same
-          # system.
-
         };
       flake = {
         # The usual flake attributes can be defined here, including system-

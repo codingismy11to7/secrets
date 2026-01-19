@@ -6,5 +6,4 @@
 
 OR
 
-- run `nix develop`
-
+- run `nix develop --comand bash -c secrets-menu`

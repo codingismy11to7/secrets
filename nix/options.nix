@@ -13,18 +13,17 @@ in
       description = "Path to the sops age key file";
     };
 
-    username = mkOption { };
+    username = mkOption {
+      type = str;
+      description = "The username for the system";
+    };
 
-    user = mkOption {
-      description = "User secrets configuration";
+    users = mkOption {
+      description = "Create root and system user and set passwords.";
       default = { };
       type = submodule {
         options = {
           enable = mkEnableOption "user & root passwords";
-          username = mkOption {
-            type = str;
-            description = "The primary username";
-          };
         };
       };
     };

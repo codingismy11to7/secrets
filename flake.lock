@@ -54,7 +54,8 @@
         "flake-parts": "flake-parts",
         "nixpkgs": "nixpkgs",
         "sops-nix": "sops-nix",
-        "systems": "systems"
+        "systems": "systems",
+        "terminaltexteffects": "terminaltexteffects"
       }
     },
     "sops-nix": {
@@ -89,6 +90,29 @@
       "original": {
         "owner": "nix-systems",
         "repo": "default",
+        "type": "github"
+      }
+    },
+    "terminaltexteffects": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "systems": [
+          "systems"
+        ]
+      },
+      "locked": {
+        "lastModified": 1768836258,
+        "narHash": "sha256-b5k3u5HvHVMYG9qpnEXtJfp18FNfHAFcFwxWNwKHc4w=",
+        "owner": "ChrisBuilds",
+        "repo": "terminaltexteffects",
+        "rev": "7760ef2d47a6ecd2b8087cf5a7970b52058eead5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ChrisBuilds",
+        "repo": "terminaltexteffects",
         "type": "github"
       }
     }

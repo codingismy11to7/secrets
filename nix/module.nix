@@ -5,7 +5,7 @@
 }:
 with builtins;
 let
-  inherit (lib) mkIf;
+  inherit (lib) mkIf stringAfter;
 
   cfg = config.secrets;
 in
@@ -23,10 +23,10 @@ in
           path = "${config.home.homeDirectory}/.ssh/id_ed25519";
           mode = "0600";
         };
-        unixPassword = mkIf cfg.user.enable {
+        unixPassword = mkIf cfg.users.enable {
           neededForUsers = true;
         };
-        unixRootPassword = mkIf cfg.user.enable {
+        unixRootPassword = mkIf cfg.users.enable {
           neededForUsers = true;
         };
       };
@@ -40,12 +40,17 @@ in
       !include ${config.sops.templates."nix.conf".path}
     '';
 
-    home.sessionVariables.SOPS_AGE_KEY_FILE = ageKeyFile;
+    home.sessionVariables.SOPS_AGE_KEY_FILE = cfg.sopsKeyFile;
 
-    users = mkIf cfg.user.enable {
+    users = mkIf cfg.users.enable {
       mutableUsers = false;
-      users.root.hashedPasswordFile = config.sops.secrets.unixRootPassword.path;
-      users.${cfg.username}.hashedPasswordFile = config.sops.secrets.unixPassword.path;
+      users = {
+        root.hashedPasswordFile = config.sops.secrets.unixRootPassword.path;
+        ${cfg.username}.hashedPasswordFile = config.sops.secrets.unixPassword.path;
+        ${cfg.username}.openssh.authorizedKeys.keys = [
+          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJxJhslVg1p7z/RcbMefJHoyyazS0c91U1MKBgVQrtuy 2025-12-20"
+        ];
+      };
     };
   };
 }
