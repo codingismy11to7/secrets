@@ -5,7 +5,7 @@
 }:
 with builtins;
 let
-  inherit (lib) mkIf stringAfter;
+  inherit (lib) mkIf;
 
   cfg = config.secrets;
 in
@@ -40,7 +40,7 @@ in
       !include ${config.sops.templates."nix.conf".path}
     '';
 
-    home.sessionVariables.SOPS_AGE_KEY_FILE = cfg.sopsKeyFile;
+    environment.sessionVariables.SOPS_AGE_KEY_FILE = cfg.sopsKeyFile;
 
     users = mkIf cfg.users.enable {
       mutableUsers = false;

@@ -1,7 +1,14 @@
 # Generate a new SSH key and store it in sops
-# Usage: generate-ssh-key
+# Usage: generate-ssh-key [--yes]
 
-@gum@ confirm "This will overwrite the existing 'sshPrivKey' in secrets.yaml. Continue?" || exit 0
+FORCE=false
+if [ "$1" == "--yes" ]; then
+  FORCE=true
+fi
+
+if [ "$FORCE" = false ]; then
+  @gum@ confirm "This will overwrite the existing 'sshPrivKey' in secrets.yaml. Continue?" || exit 0
+fi
 
 METHOD=$(@gum@ choose "Generate New Key" "Paste Existing Key")
 
@@ -30,12 +37,21 @@ if [ "$METHOD" == "Generate New Key" ]; then
   echo "Generating new Ed25519 key..."
   @sshKeygen@ -t ed25519 -f "$KEY_FILE" -N "$PASSPHRASE" -C "$COMMENT"
 else
-  echo "Paste your private key below (Ctrl+D to finish):"
+  echo "Paste your private key below:"
   @gum@ write --placeholder "Paste Private Key Here" > "$KEY_FILE"
+  
+  # Ensure strict permissions
+  chmod 600 "$KEY_FILE"
+
+  # Ensure trailing newline (ssh-keygen requires it)
+  if [ -n "$(tail -c1 "$KEY_FILE")" ]; then
+    echo >> "$KEY_FILE"
+  fi
   
   # Validate key
   echo "Validating key..."
-  if ! @sshKeygen@ -y -f "$KEY_FILE" > /dev/null 2>&1; then
+  # We redirect stdout to null but keep stderr so prompts/errors are visible
+  if ! @sshKeygen@ -y -f "$KEY_FILE" > /dev/null; then
      echo "Error: Invalid SSH private key."
      rm -rf "$TMP_DIR"
      exit 1
@@ -44,14 +60,14 @@ fi
 
 # Encode to JSON string for sops --set
 # Use jq -Rs . to read the file preserving newlines (command substitution strips them)
-JSON_VALUE=$(@jq@ -Rs . < "$KEY_FILE")
+JSON_VALUE=$(@jq@ --raw-input --slurp . < "$KEY_FILE")
 
 echo "Storing private key in secrets.yaml..."
 @sops@ --set '["sshPrivKey"] '"$JSON_VALUE" secrets.yaml
 
 # Sort the file alphabetically
 echo "Sorting secrets.yaml..."
-export EDITOR="@yq@ -i 'sort_keys(..)'"
+export EDITOR="@yq@ --inplace 'sort_keys(..)'"
 @sops@ edit secrets.yaml
 
 # Cleanup

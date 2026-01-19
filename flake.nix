@@ -83,6 +83,7 @@
                       gum = getExe pkgs.gum;
                       age = getExe pkgs.age;
                       ageKeygen = "${pkgs.age}/bin/age-keygen";
+                      sops = getExe pkgs.sops;
                     }
                   )
                 ))
@@ -180,6 +181,7 @@
 
           formatter = pkgs.nixfmt;
         };
+
       flake = {
         # The usual flake attributes can be defined here, including system-
         # agnostic ones like nixosModule and system-enumerating ones, although

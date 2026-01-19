@@ -63,7 +63,7 @@ if [ ! -f "$AGE_FILE" ]; then
 fi
 
 # Run age via nix run to decrypt to the temp file
-if @age@ -d -o "$TMP_KEY" "$AGE_FILE"; then
+if @age@ --decrypt --output "$TMP_KEY" "$AGE_FILE"; then
   echo
   printf "${GREEN}✓ Successfully decrypted key to temporary file.${NC}\n"
 

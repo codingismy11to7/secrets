@@ -1,14 +1,14 @@
 { lib, ... }:
 let
   inherit (lib) mkOption mkEnableOption types;
-  inherit (types) submodule str absolutepath;
+  inherit (types) submodule str path;
 in
 {
   options.secrets = {
     enable = mkEnableOption "secrets management";
 
     sopsKeyFile = mkOption {
-      type = absolutepath;
+      type = path;
       default = /var/lib/sops/age-keys.txt;
       description = "Path to the sops age key file";
     };
