@@ -63,6 +63,7 @@
                 inputs'.terminaltexteffects.packages.default
                 yq-go
                 wl-clipboard
+                jq
 
                 (writeShellScriptBin "ensure-system-key-exists" (
                   builtins.readFile (
@@ -98,11 +99,45 @@
                   )
                 ))
 
+                (writeShellScriptBin "set-secret" (
+                  builtins.readFile (
+                    pkgs.replaceVars ./.scripts/set-secret {
+                      sops = getExe pkgs.sops;
+                      gum = getExe pkgs.gum;
+                      jq = getExe pkgs.jq;
+                      yq = getExe pkgs.yq-go;
+                    }
+                  )
+                ))
+
+                (writeShellScriptBin "remove-secret" (
+                  builtins.readFile (
+                    pkgs.replaceVars ./.scripts/remove-secret {
+                      sops = getExe pkgs.sops;
+                      gum = getExe pkgs.gum;
+                      yq = getExe pkgs.yq-go;
+                    }
+                  )
+                ))
+
                 (writeShellScriptBin "secrets-menu" (
                   builtins.readFile (
                     pkgs.replaceVars ./.scripts/secrets-menu {
                       gum = getExe pkgs.gum;
                       wlCopy = "${pkgs.wl-clipboard}/bin/wl-copy";
+                      sops = getExe pkgs.sops;
+                    }
+                  )
+                ))
+
+                (writeShellScriptBin "generate-ssh-key" (
+                  builtins.readFile (
+                    pkgs.replaceVars ./.scripts/generate-ssh-key {
+                      gum = getExe pkgs.gum;
+                      sshKeygen = "${pkgs.openssh}/bin/ssh-keygen";
+                      sops = getExe pkgs.sops;
+                      jq = getExe pkgs.jq;
+                      yq = getExe pkgs.yq-go;
                     }
                   )
                 ))

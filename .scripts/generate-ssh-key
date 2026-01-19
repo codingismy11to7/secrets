@@ -1,0 +1,48 @@
+# Generate a new SSH key and store it in sops
+# Usage: generate-ssh-key
+
+@gum@ confirm "This will overwrite the existing 'sshPrivKey' in secrets.yaml. Continue?" || exit 0
+
+# Passphrase collection and verification
+while true; do
+  PASSPHRASE=$(@gum@ input --password --header "Enter passphrase (leave empty for none)" --placeholder "Passphrase")
+  if [ -z "$PASSPHRASE" ]; then
+    break
+  fi
+  VERIFY=$(@gum@ input --password --header "Verify passphrase" --placeholder "Passphrase")
+  if [ "$PASSPHRASE" == "$VERIFY" ]; then
+    break
+  fi
+  echo "Passphrases do not match. Please try again."
+done
+
+# Description (Comment)
+DEFAULT_COMMENT="$USER@$(hostname)"
+COMMENT=$(@gum@ input --header "Key Description (Comment)" --placeholder "$DEFAULT_COMMENT")
+[ -z "$COMMENT" ] && COMMENT="$DEFAULT_COMMENT"
+
+TMP_DIR=$(mktemp -d)
+KEY_FILE="$TMP_DIR/id_ed25519"
+
+echo "Generating new Ed25519 key..."
+@sshKeygen@ -t ed25519 -f "$KEY_FILE" -N "$PASSPHRASE" -C "$COMMENT"
+
+# Encode to JSON string for sops --set
+# Use jq -Rs . to read the file preserving newlines (command substitution strips them)
+JSON_VALUE=$(@jq@ -Rs . < "$KEY_FILE")
+
+echo "Storing private key in secrets.yaml..."
+@sops@ --set '["sshPrivKey"] '"$JSON_VALUE" secrets.yaml
+
+# Sort the file alphabetically
+echo "Sorting secrets.yaml..."
+export EDITOR="@yq@ -i 'sort_keys(..)'"
+@sops@ edit secrets.yaml
+
+# Cleanup
+rm -rf "$TMP_DIR"
+
+echo "SSH Key generated and stored successfully."
+echo
+echo "Updating public key in nix/module.nix..."
+extract-pub-key
