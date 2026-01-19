@@ -19,10 +19,6 @@ in
 
       secrets = {
         githubNixToken = { };
-        sshPrivKey = {
-          path = "${config.home.homeDirectory}/.ssh/id_ed25519";
-          mode = "0600";
-        };
         unixPassword = mkIf cfg.users.enable {
           neededForUsers = true;
         };
@@ -31,13 +27,13 @@ in
         };
       };
 
-      templates."nix.conf".content = ''
+      templates."nix-access-tokens.conf".content = ''
         access-tokens = github.com=${config.sops.placeholder.githubNixToken}
       '';
     };
 
     nix.extraOptions = ''
-      !include ${config.sops.templates."nix.conf".path}
+      !include ${config.sops.templates."nix-access-tokens.conf".path}
     '';
 
     environment.sessionVariables.SOPS_AGE_KEY_FILE = cfg.sopsKeyFile;
@@ -46,10 +42,12 @@ in
       mutableUsers = false;
       users = {
         root.hashedPasswordFile = config.sops.secrets.unixRootPassword.path;
-        ${cfg.username}.hashedPasswordFile = config.sops.secrets.unixPassword.path;
-        ${cfg.username}.openssh.authorizedKeys.keys = [
-          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJxJhslVg1p7z/RcbMefJHoyyazS0c91U1MKBgVQrtuy 2025-12-20" # managed by extract-pub-key
-        ];
+        ${cfg.username} = {
+          hashedPasswordFile = config.sops.secrets.unixPassword.path;
+          openssh.authorizedKeys.keys = [
+            "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJxJhslVg1p7z/RcbMefJHoyyazS0c91U1MKBgVQrtuy 2025-12-20" # managed by extract-pub-key
+          ];
+        };
       };
     };
   };
