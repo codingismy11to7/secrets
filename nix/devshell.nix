@@ -4,6 +4,7 @@
   inputs',
   ...
 }:
+with builtins;
 let
   inherit (lib) getExe;
   secretsOptions = import ./options.nix { inherit lib; };
@@ -28,7 +29,7 @@ pkgs.mkShell {
     yq-go
 
     (writeShellScriptBin "create-system-key" (
-      builtins.readFile (
+      readFile (
         pkgs.replaceVars ../.scripts/create-system-key {
           gum = getExe pkgs.gum;
           age = getExe pkgs.age;
@@ -39,7 +40,7 @@ pkgs.mkShell {
     ))
 
     (writeShellScriptBin "deploy-pub-key" (
-      builtins.readFile (
+      readFile (
         pkgs.replaceVars ../.scripts/deploy-pub-key {
           gum = getExe pkgs.gum;
           sshCopyId = "${pkgs.openssh}/bin/ssh-copy-id";
@@ -48,7 +49,7 @@ pkgs.mkShell {
     ))
 
     (writeShellScriptBin "ensure-system-key-exists" (
-      builtins.readFile (
+      readFile (
         pkgs.replaceVars ../.scripts/ensure-system-key-exists {
           systemKeyFile = defaultSopsKeyFile;
           age = getExe pkgs.age;
@@ -57,7 +58,7 @@ pkgs.mkShell {
     ))
 
     (writeShellScriptBin "extract-pub-key" (
-      builtins.readFile (
+      readFile (
         pkgs.replaceVars ../.scripts/extract-pub-key {
           sshKeygen = "${pkgs.openssh}/bin/ssh-keygen";
         }
@@ -65,7 +66,7 @@ pkgs.mkShell {
     ))
 
     (writeShellScriptBin "generate-ssh-key" (
-      builtins.readFile (
+      readFile (
         pkgs.replaceVars ../.scripts/generate-ssh-key {
           gum = getExe pkgs.gum;
           sshKeygen = "${pkgs.openssh}/bin/ssh-keygen";
@@ -77,7 +78,7 @@ pkgs.mkShell {
     ))
 
     (writeShellScriptBin "list-secrets" (
-      builtins.readFile (
+      readFile (
         pkgs.replaceVars ../.scripts/list-secrets {
           sops = getExe pkgs.sops;
           yq = getExe pkgs.yq-go;
@@ -86,7 +87,7 @@ pkgs.mkShell {
     ))
 
     (writeShellScriptBin "print-secret" (
-      builtins.readFile (
+      readFile (
         pkgs.replaceVars ../.scripts/print-secret {
           sops = getExe pkgs.sops;
         }
@@ -94,7 +95,7 @@ pkgs.mkShell {
     ))
 
     (writeShellScriptBin "remove-secret" (
-      builtins.readFile (
+      readFile (
         pkgs.replaceVars ../.scripts/remove-secret {
           sops = getExe pkgs.sops;
           gum = getExe pkgs.gum;
@@ -104,7 +105,7 @@ pkgs.mkShell {
     ))
 
     (writeShellScriptBin "secrets-menu" (
-      builtins.readFile (
+      readFile (
         pkgs.replaceVars ../.scripts/secrets-menu {
           gum = getExe pkgs.gum;
           wlCopy = "${pkgs.wl-clipboard}/bin/wl-copy";
@@ -117,7 +118,7 @@ pkgs.mkShell {
     ))
 
     (writeShellScriptBin "set-hashed-password" (
-      builtins.readFile (
+      readFile (
         pkgs.replaceVars ../.scripts/set-hashed-password {
           gum = getExe pkgs.gum;
           mkpasswd = getExe pkgs.mkpasswd;
@@ -129,7 +130,7 @@ pkgs.mkShell {
     ))
 
     (writeShellScriptBin "set-secret" (
-      builtins.readFile (
+      readFile (
         pkgs.replaceVars ../.scripts/set-secret {
           sops = getExe pkgs.sops;
           gum = getExe pkgs.gum;
@@ -140,3 +141,4 @@ pkgs.mkShell {
     ))
   ];
 }
+
