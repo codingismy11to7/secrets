@@ -24,6 +24,7 @@ pkgs.mkShell {
     mkpasswd
     sops
     wl-clipboard
+    xdg-utils
     yq-go
 
     (writeShellScriptBin "ensure-system-key-exists" (
@@ -112,6 +113,7 @@ pkgs.mkShell {
           sops = getExe pkgs.sops;
           jq = getExe pkgs.jq;
           yq = getExe pkgs.yq-go;
+          xdgOpen = "${pkgs.xdg-utils}/bin/xdg-open";
         }
       )
     ))
