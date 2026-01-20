@@ -1,8 +1,30 @@
 # Deploy public key to remote host
-# Usage: deploy-pub-key [username] [host]
+# Usage: deploy-pub-key [options] [username] [host]
 
-USERNAME="${1:-}"
-HOST="${2:-}"
+USERNAME=""
+HOST=""
+PORT=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -p|--port)
+      PORT="$2"
+      shift 2
+      ;;
+    -*)
+      echo "Unknown option: $1"
+      exit 1
+      ;;
+    *)
+      if [ -z "$USERNAME" ]; then
+        USERNAME="$1"
+      elif [ -z "$HOST" ]; then
+        HOST="$1"
+      fi
+      shift
+      ;;
+  esac
+done
 
 if [ -z "$USERNAME" ]; then
   echo "Enter username:"
@@ -15,6 +37,14 @@ fi
 if [ -z "$HOST" ]; then
   echo "Enter host:"
   HOST=$(@gum@ input --placeholder "Host (e.g. 192.168.1.10)")
+fi
+
+if [ -z "$PORT" ]; then
+  echo "Enter port:"
+  PORT=$(@gum@ input --placeholder "22")
+  if [ -z "$PORT" ]; then
+    PORT="22"
+  fi
 fi
 
 if [ -z "$HOST" ]; then
@@ -48,6 +78,13 @@ fi
 TMP_PUB=$(mktemp --suffix=.pub)
 echo "$PUB_KEY" > "$TMP_PUB"
 
-@sshCopyId@ -f -i "$TMP_PUB" "$USERNAME@$HOST"
+SSH_OPTS=""
+if [ -n "$PORT" ]; then
+  SSH_OPTS="-p $PORT"
+fi
+
+echo "Note: You may be prompted for the passphrase of the key being deployed."
+echo
+@sshCopyId@ $SSH_OPTS -f -i "$TMP_PUB" "$USERNAME@$HOST"
 
 rm "$TMP_PUB"
