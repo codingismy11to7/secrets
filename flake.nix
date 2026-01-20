@@ -46,7 +46,7 @@
         {
           devShells.default = import ./nix/devshell.nix {
             inherit pkgs inputs';
-            lib = pkgs.lib;
+            inherit (pkgs) lib;
           };
 
           formatter = pkgs.nixfmt;

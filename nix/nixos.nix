@@ -10,7 +10,10 @@ let
   cfg = config.secrets;
 in
 {
-  imports = [ ./options.nix ];
+  imports = [
+    ./options.nix
+    ./github-token.nix
+  ];
 
   config = mkIf cfg.enable {
     sops = {
@@ -26,15 +29,7 @@ in
           neededForUsers = true;
         };
       };
-
-      templates."nix-access-tokens.conf".content = ''
-        access-tokens = github.com=${config.sops.placeholder.githubNixToken}
-      '';
     };
-
-    nix.extraOptions = ''
-      !include ${config.sops.templates."nix-access-tokens.conf".path}
-    '';
 
     environment.sessionVariables.SOPS_AGE_KEY_FILE = cfg.sopsKeyFile;
 

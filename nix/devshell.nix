@@ -110,6 +110,8 @@ pkgs.mkShell {
           gum = getExe pkgs.gum;
           wlCopy = "${pkgs.wl-clipboard}/bin/wl-copy";
           sops = getExe pkgs.sops;
+          jq = getExe pkgs.jq;
+          yq = getExe pkgs.yq-go;
         }
       )
     ))
