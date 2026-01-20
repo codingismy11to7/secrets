@@ -27,15 +27,6 @@ pkgs.mkShell {
     xdg-utils
     yq-go
 
-    (writeShellScriptBin "ensure-system-key-exists" (
-      builtins.readFile (
-        pkgs.replaceVars ../.scripts/ensure-system-key-exists {
-          systemKeyFile = defaultSopsKeyFile;
-          age = getExe pkgs.age;
-        }
-      )
-    ))
-
     (writeShellScriptBin "create-system-key" (
       builtins.readFile (
         pkgs.replaceVars ../.scripts/create-system-key {
@@ -47,14 +38,20 @@ pkgs.mkShell {
       )
     ))
 
-    (writeShellScriptBin "set-hashed-password" (
+    (writeShellScriptBin "deploy-pub-key" (
       builtins.readFile (
-        pkgs.replaceVars ../.scripts/set-hashed-password {
+        pkgs.replaceVars ../.scripts/deploy-pub-key {
           gum = getExe pkgs.gum;
-          mkpasswd = getExe pkgs.mkpasswd;
-          sops = getExe pkgs.sops;
-          yq = getExe pkgs.yq-go;
-          jq = getExe pkgs.jq;
+          sshCopyId = "${pkgs.openssh}/bin/ssh-copy-id";
+        }
+      )
+    ))
+
+    (writeShellScriptBin "ensure-system-key-exists" (
+      builtins.readFile (
+        pkgs.replaceVars ../.scripts/ensure-system-key-exists {
+          systemKeyFile = defaultSopsKeyFile;
+          age = getExe pkgs.age;
         }
       )
     ))
@@ -67,10 +64,14 @@ pkgs.mkShell {
       )
     ))
 
-    (writeShellScriptBin "print-secret" (
+    (writeShellScriptBin "generate-ssh-key" (
       builtins.readFile (
-        pkgs.replaceVars ../.scripts/print-secret {
+        pkgs.replaceVars ../.scripts/generate-ssh-key {
+          gum = getExe pkgs.gum;
+          sshKeygen = "${pkgs.openssh}/bin/ssh-keygen";
           sops = getExe pkgs.sops;
+          jq = getExe pkgs.jq;
+          yq = getExe pkgs.yq-go;
         }
       )
     ))
@@ -84,13 +85,10 @@ pkgs.mkShell {
       )
     ))
 
-    (writeShellScriptBin "set-secret" (
+    (writeShellScriptBin "print-secret" (
       builtins.readFile (
-        pkgs.replaceVars ../.scripts/set-secret {
+        pkgs.replaceVars ../.scripts/print-secret {
           sops = getExe pkgs.sops;
-          gum = getExe pkgs.gum;
-          jq = getExe pkgs.jq;
-          yq = getExe pkgs.yq-go;
         }
       )
     ))
@@ -118,23 +116,25 @@ pkgs.mkShell {
       )
     ))
 
-    (writeShellScriptBin "generate-ssh-key" (
+    (writeShellScriptBin "set-hashed-password" (
       builtins.readFile (
-        pkgs.replaceVars ../.scripts/generate-ssh-key {
+        pkgs.replaceVars ../.scripts/set-hashed-password {
           gum = getExe pkgs.gum;
-          sshKeygen = "${pkgs.openssh}/bin/ssh-keygen";
+          mkpasswd = getExe pkgs.mkpasswd;
           sops = getExe pkgs.sops;
-          jq = getExe pkgs.jq;
           yq = getExe pkgs.yq-go;
+          jq = getExe pkgs.jq;
         }
       )
     ))
 
-    (writeShellScriptBin "deploy-pub-key" (
+    (writeShellScriptBin "set-secret" (
       builtins.readFile (
-        pkgs.replaceVars ../.scripts/deploy-pub-key {
+        pkgs.replaceVars ../.scripts/set-secret {
+          sops = getExe pkgs.sops;
           gum = getExe pkgs.gum;
-          sshCopyId = "${pkgs.openssh}/bin/ssh-copy-id";
+          jq = getExe pkgs.jq;
+          yq = getExe pkgs.yq-go;
         }
       )
     ))
