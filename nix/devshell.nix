@@ -53,6 +53,7 @@ pkgs.mkShell {
         pkgs.replaceVars ../.scripts/ensure-system-key-exists {
           systemKeyFile = defaultSopsKeyFile;
           age = getExe pkgs.age;
+          keysFile = builtins.path { path = ../keys.txt.age; };
         }
       )
     ))
@@ -61,6 +62,7 @@ pkgs.mkShell {
       readFile (
         pkgs.replaceVars ../.scripts/extract-pub-key {
           sshKeygen = "${pkgs.openssh}/bin/ssh-keygen";
+          secretsFile = builtins.path { path = ../secrets.yaml; };
         }
       )
     ))
@@ -82,6 +84,7 @@ pkgs.mkShell {
         pkgs.replaceVars ../.scripts/list-secrets {
           sops = getExe pkgs.sops;
           yq = getExe pkgs.yq-go;
+          secretsFile = builtins.path { path = ../secrets.yaml; };
         }
       )
     ))
@@ -90,6 +93,7 @@ pkgs.mkShell {
       readFile (
         pkgs.replaceVars ../.scripts/print-secret {
           sops = getExe pkgs.sops;
+          secretsFile = builtins.path { path = ../secrets.yaml; };
         }
       )
     ))

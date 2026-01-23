@@ -1,6 +1,6 @@
 # Extract public key from sops secret
 
-SOPS_FILE="${1:-secrets.yaml}"
+SOPS_FILE="${1:-@secretsFile@}"
 KEY_NAME="${2:-sshPrivKey}"
 
 if [ ! -f "$SOPS_FILE" ]; then

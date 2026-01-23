@@ -54,8 +54,7 @@ TMP_KEY=$(mktemp) || {
   exit 1
 }
 
-# Check for keys.txt.age in current directory
-AGE_FILE="./keys.txt.age"
+AGE_FILE="@keysFile@"
 if [ ! -f "$AGE_FILE" ]; then
   printf "${RED_BOLD}✗ Could not find encrypted key file at $AGE_FILE${NC}\n"
   rm -f "$TMP_KEY"
