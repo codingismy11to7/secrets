@@ -1,7 +1,26 @@
 # secrets
 
-these are my personal secrets, and maybe an example of how *you*
-could set up nixos to work with your secrets.
+A Nix flake for managing personal secrets (SSH keys, system
+passwords, API tokens) using
+[sops](https://github.com/getsops/sops) and
+[age](https://github.com/FiloSottile/age) encryption.
+It provides:
+
+- An interactive CLI (`secrets-menu`) for creating, viewing,
+  and modifying secrets
+- A passphrase-protected master key (`keys.txt.age`) that
+  encrypts everything
+- NixOS and Home Manager modules that deploy your secrets to
+  the system at build time
+
+The idea is you clone this repo, run the menu to set up your
+keys and secrets, then import the flake into your NixOS
+configuration. Your secrets stay encrypted in git, and get
+decrypted on the target system by sops using the age key you
+deploy.
+
+This is my personal secrets repo, but it's structured to be
+forked and used as a starting point for your own.
 
 ## Quick start
 
@@ -11,7 +30,7 @@ could set up nixos to work with your secrets.
 
 OR
 
-2. run `nix develop --comand bash -c secrets-menu`
+2. run `nix develop --command bash -c secrets-menu`
 
 to work with secrets.
 
