@@ -24,85 +24,69 @@ forked and used as a starting point for your own.
 
 ## Quick start
 
-1. clone the repo, and
+1. Fork/clone the repo
+2. Enter the dev shell:
+   - set up [direnv](https://direnv.net/), or
+   - run `nix develop`
+3. Run `secrets-menu`
+4. Select **Manage System Key** > **Create New System Key**
+   - This generates an age keypair, encrypts it with a
+     passphrase you choose, and installs it to the system
+5. From here you can manage passwords, SSH keys, and other
+   secrets through the menu
 
-2. set up [direnv](https://direnv.net/)
+## NixOS integration
 
-OR
+Once your secrets are set up, add the flake to your system
+configuration.
 
-2. run `nix develop --command bash -c secrets-menu`
-
-to work with secrets.
-
-To add to your system configuration, do something like the following:
-
-### add the input
+### Add the input
 
 ```nix
 inputs = {
-  # some inputs ...
-
-  home-manager = { ... };
   nixpkgs.url = "...";
+  home-manager = { ... };
 
   secrets = {
-    # you'll eventually want to push, but while integrating
-    # it's probably easiest to point to a local clone. But
-    # when you have one pushed, change to a github: url.
-    url = "path:/home/codingismy11to7/dev/secrets";
-    # url = "github:codingismy11to7/secrets";
+    # point to a local clone while integrating,
+    # switch to github: url when ready
+    url = "path:/path/to/secrets";
+    # url = "github:youruser/secrets";
 
     inputs.nixpkgs.follows = "nixpkgs";
-
-    # optional, if you have a systems input
-    inputs.systems.follows = "systems";
   };
-  ...
-}
+};
 ```
 
-### and configure the secrets
+### Configure NixOS secrets
 
 ```nix
-# varies according to your flake configuration, of course, but
-# probably a file where users are configured
-
-# add the import
 imports = [
   inputs.secrets.nixosModules.default
 ];
 
-# and configure your secrets
 secrets = {
-  username = "myuser"; # or `inherit username;`, assuming you have a username variable
-
-  # set up the system to use the system key
   enable = true;
+  username = "myuser";
 
-  # to set a token in nix configuration, probably don't need
-  # to enable.
-  enableGithubToken = false;
-
-  # maybe don't enable this right away until you've confirmed
-  # everything is working. this runs account passwords from secrets,
-  # to be used with `mutableUsers = false`
+  # manage user/root passwords via secrets
+  # (use with mutableUsers = false)
   users.enable = true;
+
+  # optional: github token for nix to avoid rate limits
+  enableGithubToken = false;
 };
+```
 
-# and again, varies per system, but somewhere that home manager
-# is configured
+### Configure Home Manager secrets
 
-home-manager = {
-  ...
-  users.${username} = {
-    imports = [
-      ...
-      # add the import
-      inputs.secrets.homeManagerModules.default
-    ];
+```nix
+home-manager.users.${username} = {
+  imports = [
+    inputs.secrets.homeManagerModules.default
+  ];
 
-    # turn on user secrets, which is currently just your SSH key
-    secrets.enable = true;
-  };
+  # deploys your SSH key to ~/.ssh/id_ed25519
+  secrets.enable = true;
 };
 ```
