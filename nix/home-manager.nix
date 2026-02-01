@@ -10,6 +10,7 @@ in
     sops = {
       age.keyFile = cfg.sopsKeyFile;
       defaultSopsFile = ../secrets.yaml;
+      secrets.nextcloudPassword = { };
       secrets.sshPrivKey = {
         path = "${config.home.homeDirectory}/.ssh/id_ed25519";
         mode = "0600";
