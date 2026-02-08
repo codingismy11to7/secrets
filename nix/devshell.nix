@@ -1,7 +1,6 @@
 {
   pkgs,
   lib,
-  inputs',
   ...
 }:
 with builtins;
@@ -9,13 +8,10 @@ let
   inherit (lib) getExe;
   secretsOptions = import ./options.nix { inherit lib; };
   defaultSopsKeyFile = secretsOptions.options.secrets.sopsKeyFile.default;
-  tte = inputs'.terminaltexteffects.packages.default;
+
   inherit (pkgs) writeShellScriptBin;
 in
 pkgs.mkShell {
-  shellHook = ''
-    echo "*** Run the 'secrets-menu' command ***" | ${getExe tte} --frame-rate 300 wipe
-  '';
 
   packages = with pkgs; [
     age
@@ -133,6 +129,21 @@ pkgs.mkShell {
       )
     ))
 
+    (writeShellScriptBin "init-secrets" (
+      readFile (
+        pkgs.replaceVars ../.scripts/init-secrets {
+          systemKeyFile = defaultSopsKeyFile;
+          age = getExe pkgs.age;
+          ageKeygen = "${pkgs.age}/bin/age-keygen";
+          sops = getExe pkgs.sops;
+          mkpasswd = getExe pkgs.mkpasswd;
+          jq = getExe pkgs.jq;
+          yq = getExe pkgs.yq-go;
+          sshKeygen = "${pkgs.openssh}/bin/ssh-keygen";
+        }
+      )
+    ))
+
     (writeShellScriptBin "set-secret" (
       readFile (
         pkgs.replaceVars ../.scripts/set-secret {
@@ -145,4 +156,3 @@ pkgs.mkShell {
     ))
   ];
 }
-
